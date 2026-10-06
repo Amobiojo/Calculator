@@ -1,0 +1,165 @@
+/* ==========================================================================
+   1. Design tokens (colors, sizes). Edit these to re-theme the calculator.
+   ========================================================================== */
+:root {
+  --font: "SF Pro Display", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", sans-serif;
+
+  /* Light theme (default) */
+  --page-bg:      #e9ecf2;
+  --panel-bg:     #ffffff;
+  --display-bg:   #f3f5f9;
+  --text:         #181c24;
+  --text-muted:   #5b6475;
+  --key-bg:       #f0f2f7;
+  --key-text:     #181c24;
+  --function-bg:  #dde1ea;
+  --operator-bg:  #2f5fd7;
+  --operator-text:#ffffff;
+  --equals-bg:    #f2a900;
+  --equals-text:  #1a1300;
+  --error:        #c0342a;
+  --focus:        #2f5fd7;
+  --shadow:       0 20px 50px rgba(24, 28, 36, .14);
+}
+
+/* Dark theme follows the device setting */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page-bg:      #0d1015;
+    --panel-bg:     #171b22;
+    --display-bg:   #0f1217;
+    --text:         #f2f4f8;
+    --text-muted:   #98a2b3;
+    --key-bg:       #272d38;
+    --key-text:     #f2f4f8;
+    --function-bg:  #3b4353;
+    --operator-bg:  #3b68df;
+    --error:        #ff8a7d;
+    --focus:        #8fb0ff;
+    --shadow:       0 24px 60px rgba(0, 0, 0, .55);
+  }
+}
+
+/* ==========================================================================
+   2. Page layout
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;                       /* correct height on mobile browsers */
+  display: grid;
+  place-items: center;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+           max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+button { font: inherit; border: 0; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* ==========================================================================
+   3. Calculator shell
+   ========================================================================== */
+.calculator {
+  width: min(100%, 26rem);                  /* phones: full width, desktop: 416px */
+  padding: clamp(.75rem, 3vw, 1.25rem);
+  border-radius: 1.75rem;
+  background: var(--panel-bg);
+  box-shadow: var(--shadow);
+}
+
+/* ==========================================================================
+   4. Display
+   ========================================================================== */
+.display {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: clamp(7rem, 20vh, 9rem);
+  margin-bottom: clamp(.75rem, 2.5vw, 1.1rem);
+  padding: 1rem 1.25rem;
+  border-radius: 1.25rem;
+  background: var(--display-bg);
+  text-align: right;
+  overflow: hidden;
+}
+
+.display__expression {
+  min-height: 1.5rem;
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;                           /* keep the END of long expressions visible */
+}
+
+.display__value {
+  display: block;
+  font-size: clamp(2.4rem, 11vw, 3.5rem);   /* JavaScript shrinks it further for long numbers */
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.display__value.is-error { color: var(--error); font-size: 1.5rem; font-weight: 600; }
+.display__value.is-new   { animation: pop .18s ease-out; }
+
+@keyframes pop {
+  from { opacity: .4; transform: translateY(4px); }
+  to   { opacity: 1;  transform: none; }
+}
+
+/* ==========================================================================
+   5. Keypad
+   ========================================================================== */
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(.5rem, 2.2vw, .75rem);
+}
+
+.key {
+  height: clamp(3.3rem, 9.5vh, 4.6rem);     /* shrinks on short screens, never overflows */
+  border-radius: 999px;                     /* fully rounded buttons */
+  background: var(--key-bg);
+  color: var(--key-text);
+  font-size: clamp(1.3rem, 5vw, 1.6rem);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform .08s ease, filter .15s ease, background-color .15s ease;
+}
+
+.key:hover         { filter: brightness(1.07); }
+.key:active,
+.key.is-pressed    { transform: scale(.94); filter: brightness(.92); }
+
+.key--function { background: var(--function-bg); font-size: clamp(1.1rem, 4.2vw, 1.3rem); }
+.key--operator { background: var(--operator-bg); color: var(--operator-text); font-size: clamp(1.5rem, 6vw, 1.9rem); }
+.key--equals   { background: var(--equals-bg);   color: var(--equals-text);   font-size: clamp(1.5rem, 6vw, 1.9rem); }
+
+/* The operator waiting for the next number is highlighted */
+.key--operator[aria-pressed="true"] {
+  background: var(--operator-text);
+  color: var(--operator-bg);
+  box-shadow: inset 0 0 0 3px var(--operator-bg);
+}
+
+/* Landscape phones: tighten everything so no scrolling is needed */
+@media (max-height: 560px) {
+  .display { min-height: 4.5rem; padding: .5rem 1rem; }
+  .key     { height: clamp(2.4rem, 11vh, 3.2rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .key, .display__value.is-new { transition: none; animation: none; }
+}
